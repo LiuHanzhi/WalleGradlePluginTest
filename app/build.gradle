@@ -1,0 +1,107 @@
+import com.android.build.gradle.api.BaseVariant
+
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+        maven {
+            url uri('../repo')
+        }
+    }
+
+    dependencies {
+        // 添加 plugin 依赖
+        classpath 'com.android.tools.build:gradle:2.2.0'
+        classpath "com.meituan.android.walle.test:plugin:1.1.7"
+    }
+}
+apply plugin: 'com.android.application'
+apply plugin: 'walle'
+apply from: rootProject.file('quality.gradle')
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId "com.example.wallegradleplugintest"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+
+    }
+
+    signingConfigs {
+        def keystorePropertiesFile = file("../buildsystem/keystore.properties")
+        def keystoreProperties = new Properties()
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+        debug {
+            storeFile file(keystoreProperties["release_storeFile"])
+            storePassword keystoreProperties["release_storePassword"]
+            keyAlias keystoreProperties["release_keyAlias"]
+            keyPassword keystoreProperties["release_keyPassword"]
+        }
+
+        release {
+            storeFile file(keystoreProperties["release_storeFile"])
+            storePassword keystoreProperties["release_storePassword"]
+            keyAlias keystoreProperties["release_keyAlias"]
+            keyPassword keystoreProperties["release_keyPassword"]
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            signingConfig signingConfigs.release
+
+            applicationIdSuffix 'debug'
+        }
+    }
+
+        productFlavors {
+        china {
+        }
+        international {
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:support-v4:24.1.1'
+    compile 'com.android.support:appcompat-v7:24.1.1'
+    compile project(':library')
+}
+
+walle {
+    apkOutputFolder = new File("${project.buildDir}/outputs/channels")
+    apkFileNameFormat = '${appName}-${packageName}-${channel}-${buildType}-v${versionName}-${versionCode}-${buildTime}-${flavorName}.apk'
+    //configFile与channelFile两者必须存在一个，否则无法生成渠道包。两者都存在时优先执行configFile
+    channelFile = new File("${project.getProjectDir()}/channel")
+    //configFile = new File("${project.getProjectDir()}/config.json")
+}
+
+
+// 根据不同的applicationId来配置不同的channelFile／configFile
+afterEvaluate {
+    project.android.applicationVariants.all { BaseVariant variant ->
+        variant.assemble.doFirst {
+            if (variant.applicationId.endsWith(".debug")) {
+
+                project.walle.channelFile = new File("${project.getProjectDir()}/channel_debug")
+            }
+        }
+    }
+}

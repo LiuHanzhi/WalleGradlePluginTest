@@ -1,0 +1,153 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'walle'
+apply from: '../buildsystem/tinker-support.gradle'
+
+
+android {
+    buildToolsVersion rootProject.ext.androidBuildToolsVersion
+    compileSdkVersion rootProject.ext.androidCompileSdkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    dataBinding {
+        enabled true
+    }
+
+    dexOptions {
+//        javaMaxHeapSize "4g"
+    }
+
+    defaultConfig {
+
+        applicationId "cn.krcom.tv"
+        versionName rootProject.ext.appVersionName
+        versionCode rootProject.ext.appVersionCode
+
+        minSdkVersion rootProject.ext.androidMinSdkVersion
+        targetSdkVersion rootProject.ext.androidTargetSdkVersion
+        multiDexEnabled true
+
+        /**
+         * 自动导入第三方库的注解依赖
+         */
+        javaCompileOptions {
+            annotationProcessorOptions {
+                includeCompileClasspath = true
+            }
+        }
+
+        ndk {
+            // 设置支持的SO库架构
+            abiFilters 'armeabi-v7a'
+        }
+
+        packagingOptions {
+            exclude "lib/arm64-v8a/libimagepipeline.so"//排除不引用
+        }
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [AROUTER_MODULE_NAME: project.getName()]
+            }
+        }
+
+    }
+
+
+    lintOptions {
+        abortOnError true
+        xmlReport true
+        check 'NewApi', 'InlinedApi'
+    }
+
+    //避免编译不能用于在编译类路径中发现的注解处理器，因为它们中的任何更改都需要运行注解处理任务
+    kapt.includeCompileClasspath = false
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+
+        exclude 'META-INF/maven/com.squareup.okio/okio/pom.xml'
+        exclude 'META-INF/maven/com.squareup.okio/okio/pom.properties'
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+    }
+
+    signingConfigs {
+        def keystorePropertiesFile = file("../buildsystem/keystore.properties")
+        def keystoreProperties = new Properties()
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+        debug {
+            storeFile file(keystoreProperties["release_storeFile"])
+            storePassword keystoreProperties["release_storePassword"]
+            keyAlias keystoreProperties["release_keyAlias"]
+            keyPassword keystoreProperties["release_keyPassword"]
+        }
+
+        release {
+            storeFile file(keystoreProperties["release_storeFile"])
+            storePassword keystoreProperties["release_storePassword"]
+            keyAlias keystoreProperties["release_keyAlias"]
+            keyPassword keystoreProperties["release_keyPassword"]
+        }
+    }
+
+}
+
+kapt {
+    generateStubs = true
+}
+
+repositories {
+    maven { url "https://jitpack.io" }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
+
+    implementation project(':lib:lib_net')
+    implementation project(':lib:lib_threadpool')
+    implementation project(':lib:lib_tvrecyclerview')
+//    implementation project(':lib:lib_sina_statistic')
+    implementation project(':lib:lib_krplayer')
+    implementation project(':lib:lib_ijkplayer')
+    implementation project(':lib:lib_exoplayer')
+    implementation project(':lib:lib_tools')
+    implementation project(':lib:lib_image_loader')
+    implementation project(':lib:lib_widget')
+    implementation project(':lib:lib_mvvm')
+//    implementation project(':lib:lib_log')
+
+    def app_dependencies = rootProject.ext.app_dependencies
+    //版本要与gradle版本一致
+    kapt  app_dependencies.kapt
+    //kotlin
+    implementation app_dependencies.core_ktx
+    implementation app_dependencies.kotlin_stdlib
+
+    implementation app_dependencies.logger
+    implementation app_dependencies.support_appcompat_v7
+    implementation app_dependencies.eventbus
+//    implementation app_dependencies.hawk
+    implementation app_dependencies.bugly_ndk
+    implementation app_dependencies.crashreport_upgrade
+    implementation app_dependencies.constraint_layout
+    implementation app_dependencies.support_v4
+    implementation app_dependencies.multidex
+    implementation app_dependencies.tinker
+    implementation app_dependencies.meituan_walle
+
+    // 下面各SDK根据宿主App是否使用相关业务按需引入。
+    // 友盟统计SDK
+    implementation app_dependencies.umeng_common// 必选
+    implementation app_dependencies.umeng_asms// 必选
+
+}
