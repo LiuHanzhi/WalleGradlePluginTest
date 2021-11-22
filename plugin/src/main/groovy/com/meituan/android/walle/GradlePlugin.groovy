@@ -45,7 +45,7 @@ class GradlePlugin implements org.gradle.api.Plugin<Project> {
         }
 
 //        project.dependencies {
-//            compile 'com.meituan.android.walle:library:' + getVersion()
+//            implementation 'com.meituan.android.walle:library:' + getVersion()
 //        }
 
         applyExtension(project);
@@ -54,6 +54,7 @@ class GradlePlugin implements org.gradle.api.Plugin<Project> {
     }
 
     void applyExtension(Project project) {
+        project.configurations.create(sPluginExtensionName).extendsFrom(project.configurations.compile)
         project.extensions.create(sPluginExtensionName, Extension, project);
     }
 
