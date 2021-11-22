@@ -3,6 +3,7 @@ package com.lhz
 import com.android.build.gradle.api.BaseVariant
 import com.meituan.android.walle.ChannelMaker
 import com.meituan.android.walle.GradlePlugin
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.ProjectConfigurationException
 
@@ -28,23 +29,24 @@ class MyGradlePlugin extends GradlePlugin {
 
                 println("addTasks() build type task ${taskName}")
 
-//                if (variant.hasProperty('assembleProvider')) {
-//                    channelMaker.dependsOn variant.assembleProvider.get()
-//                } else {
+                if (variant.hasProperty('assembleProvider')) {
+                    channelMaker.dependsOn variant.assembleProvider.get()
+                } else {
                     channelMaker.dependsOn variant.assemble
-//                }
+                }
 
 
                 def buildTypeName = variant.buildType.name
                 println("variant.name:${variant.name}, buildTypeName:${buildTypeName}")
                 if (variant.name != buildTypeName) {
                     taskName = "apk${buildTypeName.capitalize()}"
-                    ChannelMaker apkTask = project.tasks.findByName(taskName)
+
+                    DefaultTask apkTask = project.tasks.findByName(taskName)
                     if (apkTask == null) {
-                        apkTask = project.tasks.create(taskName, ChannelMaker)
-                        apkTask.targetProject = project;
-                        apkTask.variant = variant;
-                        apkTask.setup();
+                        apkTask = project.tasks.create(taskName, DefaultTask) {
+                            description "Make Multi-Channel"
+                            group "Package"
+                        }
                     }
                     apkTask.dependsOn(channelMaker)
 

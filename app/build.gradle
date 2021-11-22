@@ -1,20 +1,25 @@
-import com.android.build.gradle.api.BaseVariant
 
 buildscript {
     repositories {
         mavenLocal()
         jcenter()
-        maven {
-            url uri('../repo')
-        }
+        google()
+        maven {url uri('../repo')}
     }
 
     dependencies {
         // 添加 plugin 依赖
-        classpath 'com.android.tools.build:gradle:2.2.0'
+        classpath 'com.android.tools.build:gradle:3.3.0'
         classpath "com.meituan.android.walle.test:plugin:1.1.7"
     }
 }
+repositories {
+    maven { url '../repo' }
+    mavenCentral()
+    jcenter()
+    google()
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'walle'
 apply from: rootProject.file('quality.gradle')
@@ -70,6 +75,7 @@ android {
         }
     }
 
+    flavorDimensions "tier"
     productFlavors {
         china {
         }
@@ -79,10 +85,10 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:support-v4:24.1.1'
-    compile 'com.android.support:appcompat-v7:24.1.1'
-    compile project(':library')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:support-v4:24.1.1'
+    implementation 'com.android.support:appcompat-v7:24.1.1'
+    implementation project(':library')
 }
 
 walle {

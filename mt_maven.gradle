@@ -1,7 +1,8 @@
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
+//apply plugin: 'com.github.dcendents.android-maven'
+//apply plugin: 'com.jfrog.bintray'
 group = GROUP
 version = VERSION_NAME
+apply plugin: 'maven'
 
 
 def getPropertyFromLocalProperties(key) {
@@ -59,17 +60,17 @@ uploadArchives {
     }
 }
 
-bintray {
-    user = getPropertyFromLocalProperties("bintray.user")
-    key = getPropertyFromLocalProperties("bintray.apikey")
-    configurations = ['archives']
-    pkg {
-        repo = 'maven'
-        name = "${project.group}:${project.name}"
-        userOrg = 'meituan'
-        licenses = ['Apache-2.0']
-        websiteUrl = 'http://tech.meituan.com/android-apk-v2-signature-scheme.html'
-        vcsUrl = 'https://github.com/Meituan-Dianping/walle'
-        publish = true
-    }
-}
+//bintray {
+//    user = getPropertyFromLocalProperties("bintray.user")
+//    key = getPropertyFromLocalProperties("bintray.apikey")
+//    configurations = ['archives']
+//    pkg {
+//        repo = 'maven'
+//        name = "${project.group}:${project.name}"
+//        userOrg = 'meituan'
+//        licenses = ['Apache-2.0']
+//        websiteUrl = 'http://tech.meituan.com/android-apk-v2-signature-scheme.html'
+//        vcsUrl = 'https://github.com/Meituan-Dianping/walle'
+//        publish = true
+//    }
+//}
